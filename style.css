@@ -1,0 +1,1035 @@
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent
+}
+
+:root{
+  --bg:#f3f4f6;
+  --card:#fff;
+  --text:#111827;
+  --sub:#6b7280;
+  --border:#e5e7eb;
+  --blue:#2563eb;
+  --red:#dc2626;
+  --dark:#111827
+}
+
+html,
+body{
+  margin:0;
+  padding:0
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans JP",
+    sans-serif
+}
+
+button,
+input,
+select,
+textarea{
+  font:inherit
+}
+
+button{
+  touch-action:manipulation;
+  cursor:pointer
+}
+
+#app{
+  max-width:680px;
+  margin:auto;
+  min-height:100vh
+}
+
+.page{
+  display:none;
+  min-height:100vh;
+  padding:16px 14px 90px
+}
+
+.page.active{
+  display:block
+}
+
+
+/* ================= 共通 ================= */
+
+.header,
+.page-title,
+.live-header,
+.section-head,
+.table-title{
+  display:flex;
+  align-items:center
+}
+
+.header,
+.section-head,
+.table-title{
+  justify-content:space-between
+}
+
+h1{
+  font-size:25px;
+  margin:0
+}
+
+h2{
+  font-size:18px
+}
+
+.eyebrow{
+  font-size:10px;
+  color:var(--blue);
+  font-weight:900;
+  letter-spacing:2px
+}
+
+.round-btn,
+.live-round{
+  width:44px;
+  height:44px;
+  border:0;
+  border-radius:14px;
+  background:#fff;
+  font-size:22px
+}
+
+
+/* ================= ホーム ================= */
+
+.record-card{
+  margin-top:20px;
+  padding:22px;
+  border-radius:23px;
+  background:var(--dark);
+  color:#fff;
+  text-align:center
+}
+
+.record-card>div{
+  font-size:55px;
+  font-weight:950;
+  display:flex;
+  justify-content:center;
+  gap:14px
+}
+
+.record-card p{
+  margin:0;
+  color:#cbd5e1
+}
+
+.main-btn{
+  width:100%;
+  margin:15px 0;
+  padding:16px;
+  border:0;
+  border-radius:16px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:900;
+  font-size:16px
+}
+
+.section-head{
+  margin-top:20px
+}
+
+.section-head button{
+  border:0;
+  background:none;
+  color:var(--blue);
+  font-weight:800
+}
+
+
+/* ================= カード ================= */
+
+.card,
+.match-item{
+  margin-top:10px;
+  padding:16px;
+  border-radius:19px;
+  background:var(--card)
+}
+
+.form label{
+  display:block;
+  margin:14px 0 7px;
+  font-size:14px;
+  font-weight:850
+}
+
+input,
+select,
+textarea,
+.search{
+  width:100%;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#f9fafb;
+  outline:none
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--blue)
+}
+
+
+/* ================= プレイヤー ================= */
+
+.player-box{
+  margin-top:16px;
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:16px
+}
+
+.player-box h2{
+  margin:0 0 4px
+}
+
+.player-box label{
+  margin-top:10px
+}
+
+
+/* ================= 試合一覧 ================= */
+
+.match-item{
+  width:100%;
+  border:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  text-align:left
+}
+
+.match-item strong,
+.match-item small{
+  display:block
+}
+
+.match-item small{
+  color:var(--sub);
+  margin-top:4px
+}
+
+.match-result{
+  font-size:19px;
+  font-weight:900;
+  text-align:right
+}
+
+.blue{
+  color:var(--blue)
+}
+
+.red{
+  color:var(--red)
+}
+
+.folder-line{
+  color:#7c3aed !important;
+  font-weight:800
+}
+
+
+/* ================= LIVE ================= */
+
+.live{
+  background:var(--dark);
+  color:#fff;
+  padding:10px 10px 25px
+}
+
+.live-header{
+  justify-content:space-between
+}
+
+.live-header>div{
+  text-align:center
+}
+
+.live-header b,
+.live-header small{
+  display:block
+}
+
+.live-header small{
+  font-size:11px;
+  color:#9ca3af
+}
+
+.live-round{
+  background:#374151;
+  color:#fff
+}
+
+
+/* ================= チップ ================= */
+
+.chips{
+  display:flex;
+  gap:6px;
+  overflow:auto;
+  margin:7px 0
+}
+
+.chips span{
+  white-space:nowrap;
+  background:#1f2937;
+  color:#d1d5db;
+  border-radius:999px;
+  padding:6px 9px;
+  font-size:11px;
+  font-weight:800
+}
+
+
+/* ================= 得点 ================= */
+
+.big-score{
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+  background:#1f2937;
+  border-radius:23px;
+  padding:13px 3px
+}
+
+.player-score{
+  width:43%;
+  text-align:center
+}
+
+.player-score small,
+.player-score b{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+
+.player-score small{
+  font-size:13px;
+  color:#9ca3af
+}
+
+.player-score b{
+  font-size:13px
+}
+
+.player-score strong{
+  display:block;
+  font-size:clamp(76px,23vw,128px);
+  line-height:.95;
+  font-weight:950
+}
+
+.player-score.opponent strong{
+  color:#f87171
+}
+
+.player-score.me strong{
+  color:#60a5fa
+}
+
+.dash{
+  font-size:32px;
+  color:#6b7280
+}
+
+
+/*
+  得点部分を押せるようにする
+*/
+
+.score-tap{
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:transform .08s
+}
+
+.score-tap:active{
+  transform:scale(.96)
+}
+
+
+/* ================= ＋ボタン ================= */
+
+.score-buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:9px
+}
+
+.point{
+  min-height:105px;
+  border:0;
+  border-radius:19px;
+  color:#fff;
+  font-size:31px;
+  font-weight:950
+}
+
+.point small{
+  display:block;
+  font-size:12px
+}
+
+.point.opponent{
+  background:var(--red)
+}
+
+.point.me{
+  background:var(--blue)
+}
+
+.point:active{
+  transform:scale(.97)
+}
+
+
+/* ================= 得点表 ================= */
+
+.table-title{
+  margin:18px 0 8px
+}
+
+.table-title h2{
+  margin:0;
+  font-size:16px
+}
+
+.table-title span{
+  font-size:12px;
+  color:#9ca3af
+}
+
+.score-scroll{
+  overflow-x:auto;
+  color:#111827;
+  background:#fff;
+  border-radius:11px;
+  -webkit-overflow-scrolling:touch
+}
+
+.score-table{
+  border-collapse:collapse;
+  min-width:max-content;
+  color:#111827
+}
+
+.score-table th,
+.score-table td{
+  width:43px;
+  min-width:43px;
+  height:45px;
+  border:1px solid #cbd5e1;
+  text-align:center;
+  font-weight:900
+}
+
+.score-table th:first-child{
+  position:sticky;
+  left:0;
+  z-index:2;
+  width:90px;
+  min-width:90px
+}
+
+.score-table thead th{
+  background:#e5e7eb
+}
+
+.score-table tbody th{
+  background:#f8fafc
+}
+
+.score-table .op{
+  color:var(--red);
+  font-size:17px
+}
+
+.score-table .me{
+  color:var(--blue);
+  font-size:17px
+}
+
+
+/* ================= 下部情報 ================= */
+
+.bottom-info{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:8px
+}
+
+.bottom-info div{
+  padding:10px;
+  border-radius:13px;
+  background:#1f2937;
+  text-align:center
+}
+
+.bottom-info small,
+.bottom-info b{
+  display:block
+}
+
+.bottom-info small{
+  color:#9ca3af;
+  font-size:10px
+}
+
+.bottom-info b{
+  font-size:18px
+}
+
+.finish-btn{
+  width:100%;
+  margin-top:8px;
+  padding:12px;
+  border:1px solid #4b5563;
+  border-radius:13px;
+  background:transparent;
+  color:#fff;
+  font-weight:800
+}
+
+
+/* ================= 結果 ================= */
+
+.result-box{
+  text-align:center;
+  padding:22px;
+  border-radius:21px;
+  background:#fff
+}
+
+.result-box .result{
+  font-size:25px;
+  font-weight:950
+}
+
+.result-box .score{
+  font-size:52px;
+  font-weight:950
+}
+
+.game-row{
+  display:flex;
+  justify-content:space-between;
+  padding:14px;
+  border-radius:15px;
+  background:#fff;
+  margin-top:8px
+}
+
+.game-row strong{
+  font-size:23px
+}
+
+
+/* ================= タグ ================= */
+
+.tags{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px
+}
+
+.tag{
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:11px;
+  background:#f9fafb
+}
+
+.tag.selected{
+  background:#dbeafe;
+  border-color:var(--blue);
+  color:var(--blue);
+  font-weight:900
+}
+
+
+/* ================= 成績 ================= */
+
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px
+}
+
+.stats>div{
+  padding:14px;
+  border-radius:16px;
+  background:#fff
+}
+
+.stats small,
+.stats b{
+  display:block
+}
+
+.stats b{
+  font-size:29px
+}
+
+
+/* ================= フォルダ成績 ================= */
+
+.folder-stat{
+  padding:13px;
+  border:1px solid var(--border);
+  border-radius:15px;
+  margin-top:9px;
+  background:#f9fafb
+}
+
+.folder-stat-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px
+}
+
+.folder-stat-title strong{
+  font-size:15px
+}
+
+.folder-stat-title b{
+  color:var(--blue);
+  white-space:nowrap
+}
+
+.folder-stat-detail{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--sub)
+}
+
+.folder-progress{
+  height:7px;
+  margin-top:9px;
+  background:#e5e7eb;
+  border-radius:99px;
+  overflow:hidden
+}
+
+.folder-progress span{
+  display:block;
+  height:100%;
+  background:var(--blue);
+  border-radius:99px
+}
+
+
+/* ================= グラフ ================= */
+
+.chart-bars{
+  display:flex;
+  gap:5px;
+  align-items:end;
+  min-height:70px;
+  overflow:auto
+}
+
+.bar{
+  min-width:28px;
+  height:55px;
+  border-radius:7px;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900
+}
+
+.bar.win{
+  background:var(--blue)
+}
+
+.bar.loss{
+  background:var(--red)
+}
+
+
+/* ================= 設定 ================= */
+
+.folder-description{
+  color:var(--sub);
+  font-size:13px;
+  line-height:1.6
+}
+
+.folder-create{
+  margin-top:15px
+}
+
+.folder-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  margin-top:8px;
+  background:#f9fafb
+}
+
+.folder-row strong{
+  display:block
+}
+
+.folder-row small{
+  display:block;
+  color:var(--sub);
+  margin-top:3px
+}
+
+.folder-delete{
+  border:0;
+  border-radius:10px;
+  padding:8px 10px;
+  background:#fee2e2;
+  color:var(--red);
+  font-weight:900
+}
+
+.small-empty{
+  padding:15px 5px
+}
+
+
+/* ================= ボタン ================= */
+
+.file-btn{
+  display:block;
+  margin-top:9px;
+  padding:14px;
+  background:#e5e7eb;
+  border-radius:13px;
+  text-align:center;
+  font-weight:900
+}
+
+.file-btn input{
+  display:none
+}
+
+.sub-btn,
+.danger{
+  width:100%;
+  padding:13px;
+  border:0;
+  border-radius:13px;
+  font-weight:900
+}
+
+.sub-btn{
+  margin-top:10px;
+  background:#e5e7eb
+}
+
+.danger{
+  margin-top:10px;
+  background:var(--red);
+  color:#fff
+}
+
+
+/* ================= ナビ ================= */
+
+.nav{
+  position:fixed;
+  z-index:20;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(680px,100%);
+  height:68px;
+  padding-bottom:env(safe-area-inset-bottom);
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  background:rgba(255,255,255,.97);
+  border-top:1px solid var(--border)
+}
+
+.nav button{
+  border:0;
+  background:none;
+  color:#6b7280;
+  font-weight:800
+}
+
+.nav small{
+  display:block;
+  font-size:10px
+}
+
+.nav button.active{
+  color:var(--blue)
+}
+
+body.live-mode .nav{
+  display:none
+}
+
+
+/* ================= トースト ================= */
+
+#toast{
+  position:fixed;
+  z-index:100;
+  bottom:80px;
+  left:50%;
+  transform:
+    translateX(-50%)
+    translateY(10px);
+  background:#111827;
+  color:#fff;
+  padding:10px 15px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+  opacity:0;
+  transition:.2s
+}
+
+#toast.show{
+  opacity:1;
+  transform:
+    translateX(-50%)
+}
+
+
+/* ================= その他 ================= */
+
+.empty{
+  text-align:center;
+  color:var(--sub);
+  padding:30px 10px
+}
+
+.detail-game{
+  margin-top:12px
+}
+
+.detail-meta{
+  line-height:1.8
+}
+
+#editNotesArea label{
+  margin-top:12px
+}
+
+#editNotesArea .main-btn{
+  margin-top:12px
+}
+
+
+/* ================= PC ================= */
+
+@media(min-width:700px){
+
+  body{
+    background:#e5e7eb
+  }
+
+  #app{
+    background:var(--bg);
+    box-shadow:0 0 30px #0001
+  }
+
+}
+
+
+/* ==================================================
+   横向きスマホ：得点だけの大画面
+   ================================================== */
+
+@media (orientation:landscape) and (max-height:600px){
+
+  body.live-mode{
+    overflow:hidden;
+    background:#000
+  }
+
+  body.live-mode #app{
+    max-width:none;
+    width:100vw;
+    height:100dvh;
+  }
+
+  body.live-mode .live{
+    width:100vw;
+    height:100dvh;
+    min-height:100dvh;
+    padding:5px;
+    overflow:hidden;
+  }
+
+  /*
+    上のヘッダーを小さくする
+  */
+
+  body.live-mode .live-header{
+    height:32px
+  }
+
+  body.live-mode .live-round{
+    width:34px;
+    height:32px;
+    border-radius:9px;
+    font-size:18px
+  }
+
+  body.live-mode .live-header b{
+    font-size:12px
+  }
+
+  body.live-mode .live-header small{
+    display:none
+  }
+
+
+  /*
+    情報チップを非表示
+  */
+
+  body.live-mode .chips{
+    display:none
+  }
+
+
+  /*
+    得点部分を画面いっぱいにする
+  */
+
+  body.live-mode .big-score{
+    position:absolute;
+    left:5px;
+    right:5px;
+    top:38px;
+    bottom:5px;
+
+    height:auto;
+
+    padding:5px;
+
+    border-radius:18px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-around
+  }
+
+
+  body.live-mode .player-score{
+    width:46%;
+    height:100%;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    cursor:pointer
+  }
+
+
+  body.live-mode .player-score small{
+    font-size:12px
+  }
+
+  body.live-mode .player-score b{
+    font-size:18px
+  }
+
+
+  body.live-mode .player-score strong{
+
+    font-size:
+      clamp(
+        130px,
+        35vh,
+        300px
+      );
+
+    line-height:.8
+  }
+
+
+  body.live-mode .dash{
+    font-size:
+      clamp(
+        35px,
+        10vh,
+        80px
+      )
+  }
+
+
+  /*
+    横画面では＋1ボタンを消す
+  */
+
+  body.live-mode .score-buttons{
+    display:none
+  }
+
+
+  /*
+    得点表・その他を消す
+  */
+
+  body.live-mode .table-title,
+  body.live-mode .score-scroll,
+  body.live-mode .bottom-info,
+  body.live-mode .finish-btn{
+    display:none
+  }
+
+
+  /*
+    タップしたとき少し縮む
+  */
+
+  body.live-mode .score-tap:active{
+    transform:scale(.93)
+  }
+
+}
+
+
+/* ================= さらに小さい横画面 ================= */
+
+@media (orientation:landscape) and (max-height:420px){
+
+  body.live-mode .player-score strong{
+    font-size:32vh
+  }
+
+  body.live-mode .player-score b{
+    font-size:14px
+  }
+
+}

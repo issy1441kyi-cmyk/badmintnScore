@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>Badminton Score</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="app">
+
+  <!-- ================= HOME ================= -->
+  <section id="home" class="page active">
+
+    <header class="header">
+      <div>
+        <div class="eyebrow">BADMINTON</div>
+        <h1>Score Record</h1>
+      </div>
+      <button class="round-btn" id="settingsBtn">⚙️</button>
+    </header>
+
+    <div class="record-card">
+      <small>通算成績</small>
+      <div>
+        <b id="wins">0</b>
+        <span>-</span>
+        <b id="losses">0</b>
+      </div>
+      <p id="rate">勝率 0%</p>
+    </div>
+
+    <button class="main-btn" id="newMatchBtn">
+      ＋ 新しい試合
+    </button>
+
+    <div class="section-head">
+      <h2>最近の試合</h2>
+      <button id="allMatchesBtn">すべて見る →</button>
+    </div>
+
+    <div id="recentMatches"></div>
+
+  </section>
+
+
+  <!-- ================= SETUP ================= -->
+  <section id="setup" class="page">
+
+    <header class="page-title">
+      <button class="round-btn back-home">←</button>
+      <h1>試合設定</h1>
+    </header>
+
+    <div class="card form">
+
+      <label>
+        日付
+        <input type="date" id="date">
+      </label>
+
+      <label>
+        種目
+        <select id="type">
+          <option>シングルス</option>
+          <option>ダブルス</option>
+        </select>
+      </label>
+
+      <label>
+        マッチ
+        <select id="games">
+          <option value="1">1ゲーム</option>
+          <option value="3" selected>3ゲーム</option>
+          <option value="5">5ゲーム</option>
+        </select>
+      </label>
+
+      <label>
+        1ゲームの点数
+        <select id="target">
+          <option value="11">11点</option>
+          <option value="15">15点</option>
+          <option value="21" selected>21点</option>
+          <option value="30">30点</option>
+        </select>
+      </label>
+
+      <!-- フォルダは任意 -->
+      <label>
+        📁 分類
+        <select id="folder">
+          <option value="">未分類</option>
+        </select>
+      </label>
+
+      <div class="folder-help">
+        フォルダを作らなくても、そのまま試合を始められます。
+      </div>
+
+
+      <div class="player-box">
+
+        <h2>🔵 自分</h2>
+
+        <label>
+          左右
+          <select id="meSide">
+            <option value="L">左（L）</option>
+            <option value="R">右（R）</option>
+          </select>
+        </label>
+
+        <label>
+          サーブ・レシーブ
+          <select id="meSR">
+            <option value="S">サーブ（S）</option>
+            <option value="R">レシーブ（R）</option>
+          </select>
+        </label>
+
+        <label>
+          名前
+          <input id="meName" placeholder="自分の名前">
+        </label>
+
+      </div>
+
+
+      <div class="player-box">
+
+        <h2>🔴 相手</h2>
+
+        <label>
+          左右
+          <select id="opSide">
+            <option value="R">右（R）</option>
+            <option value="L">左（L）</option>
+          </select>
+        </label>
+
+        <label>
+          サーブ・レシーブ
+          <select id="opSR">
+            <option value="R">レシーブ（R）</option>
+            <option value="S">サーブ（S）</option>
+          </select>
+        </label>
+
+        <label>
+          名前
+          <input id="opName" placeholder="相手の名前">
+        </label>
+
+      </div>
+
+
+      <label>
+        大会・試合名
+        <input id="event" placeholder="例：練習試合">
+      </label>
+
+      <label>
+        場所
+        <input id="place" placeholder="例：○○体育館">
+      </label>
+
+      <label>
+        天気
+        <select id="weather">
+          <option>☀️ 晴れ</option>
+          <option>⛅ 曇り</option>
+          <option>🌧️ 雨</option>
+          <option>❄️ 雪</option>
+          <option>🏢 屋内</option>
+        </select>
+      </label>
+
+    </div>
+
+    <button class="main-btn" id="startBtn">
+      🏸 試合開始
+    </button>
+
+  </section>
+
+
+  <!-- ================= LIVE ================= -->
+  <section id="live" class="page live">
+
+    <header class="live-header">
+
+      <button class="live-round" id="quitLive">×</button>
+
+      <div>
+        <b id="gameTitle">第1ゲーム</b>
+        <small id="gameSub">GAME 1</small>
+      </div>
+
+      <button class="live-round" id="undoBtn">↩</button>
+
+    </header>
+
+
+    <div class="chips">
+      <span id="liveType"></span>
+      <span id="liveRule"></span>
+      <span id="liveFolder"></span>
+      <span id="matchGamesScore"></span>
+    </div>
+
+
+    <!-- この部分を横向き時に大画面化 -->
+    <div class="big-score">
+
+      <div
+        class="player-score opponent score-tap"
+        id="opScoreArea"
+        role="button"
+        aria-label="相手の得点を追加"
+      >
+        <small id="opLabel">R R</small>
+        <b id="opNameLive">相手</b>
+        <strong id="opScore">0</strong>
+      </div>
+
+      <div class="dash">-</div>
+
+      <div
+        class="player-score me score-tap"
+        id="meScoreArea"
+        role="button"
+        aria-label="自分の得点を追加"
+      >
+        <small id="meLabel">L S</small>
+        <b id="meNameLive">自分</b>
+        <strong id="meScore">0</strong>
+      </div>
+
+    </div>
+
+
+    <!-- 縦画面ではこちらも表示 -->
+    <div class="score-buttons">
+
+      <button class="point opponent" id="opPoint">
+        ＋1
+        <small>🔴 相手</small>
+      </button>
+
+      <button class="point me" id="mePoint">
+        ＋1
+        <small>🔵 自分</small>
+      </button>
+
+    </div>
+
+
+    <div class="table-title">
+      <h2>得点表</h2>
+      <span id="rallyCount">0回</span>
+    </div>
+
+
+    <div class="score-scroll">
+      <table id="scoreTable"></table>
+    </div>
+
+
+    <div class="bottom-info">
+
+      <div>
+        <small>ゲーム</small>
+        <b id="gameScore">0 - 0</b>
+      </div>
+
+      <div>
+        <small>現在</small>
+        <b id="nowScore">0 - 0</b>
+      </div>
+
+    </div>
+
+
+    <button class="finish-btn" id="finishGame">
+      このゲームを終了
+    </button>
+
+  </section>
+
+
+  <!-- ================= RESULT ================= -->
+  <section id="result" class="page">
+
+    <header class="page-title">
+      <h1>試合結果</h1>
+    </header>
+
+    <div id="resultTop"></div>
+
+    <h2>ゲーム結果</h2>
+
+    <div id="resultGames"></div>
+
+
+    <div class="card form">
+
+      <label>⭐ 良かったところ</label>
+
+      <div class="tags">
+
+        <button class="tag" data-tag="サーブ">サーブ</button>
+        <button class="tag" data-tag="レシーブ">レシーブ</button>
+        <button class="tag" data-tag="スマッシュ">スマッシュ</button>
+        <button class="tag" data-tag="クリア">クリア</button>
+        <button class="tag" data-tag="ドロップ">ドロップ</button>
+        <button class="tag" data-tag="ラリー">ラリー</button>
+        <button class="tag" data-tag="フットワーク">フットワーク</button>
+        <button class="tag" data-tag="集中力">集中力</button>
+
+      </div>
+
+
+      <label>
+        🔧 改善したいところ
+        <textarea id="improve" rows="4"></textarea>
+      </label>
+
+
+      <label>
+        📝 メモ
+        <textarea id="memo" rows="4"></textarea>
+      </label>
+
+    </div>
+
+    <button class="main-btn" id="saveBtn">
+      💾 保存
+    </button>
+
+  </section>
+
+
+  <!-- ================= MATCHES ================= -->
+  <section id="matches" class="page">
+
+    <header class="page-title">
+      <h1>試合一覧</h1>
+    </header>
+
+    <input
+      class="search"
+      id="search"
+      placeholder="🔎 大会・名前・場所を検索"
+    >
+
+    <div id="matchList"></div>
+
+  </section>
+
+
+  <!-- ================= DETAIL ================= -->
+  <section id="detail" class="page">
+
+    <header class="page-title">
+      <button class="round-btn" id="detailBack">←</button>
+      <h1>試合詳細</h1>
+    </header>
+
+    <div id="detailBody"></div>
+
+  </section>
+
+
+  <!-- ================= STATS ================= -->
+  <section id="stats" class="page">
+
+    <header class="page-title">
+      <h1>成績</h1>
+    </header>
+
+
+    <div class="stats">
+
+      <div>
+        <small>試合</small>
+        <b id="sMatches">0</b>
+      </div>
+
+      <div>
+        <small>勝利</small>
+        <b class="blue" id="sWins">0</b>
+      </div>
+
+      <div>
+        <small>敗北</small>
+        <b class="red" id="sLosses">0</b>
+      </div>
+
+      <div>
+        <small>勝率</small>
+        <b id="sRate">0%</b>
+      </div>
+
+    </div>
+
+
+    <!-- フォルダ別成績 -->
+    <div class="card">
+
+      <h2>📁 フォルダ別成績</h2>
+
+      <div id="folderStats"></div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>最近の勝敗</h2>
+
+      <div id="chart"></div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>⭐ 良かったところ</h2>
+
+      <div id="goodStats"></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= SETTINGS ================= -->
+  <section id="settings" class="page">
+
+    <header class="page-title">
+      <button class="round-btn back-home">←</button>
+      <h1>設定</h1>
+    </header>
+
+
+    <div class="card form">
+
+      <label>
+        自分の名前
+        <input id="settingName">
+      </label>
+
+      <label>
+        デフォルトのマッチ
+        <select id="settingGames">
+          <option value="1">1ゲーム</option>
+          <option value="3">3ゲーム</option>
+          <option value="5">5ゲーム</option>
+        </select>
+      </label>
+
+      <label>
+        デフォルトの点数
+        <select id="settingTarget">
+          <option value="11">11点</option>
+          <option value="15">15点</option>
+          <option value="21">21点</option>
+          <option value="30">30点</option>
+        </select>
+      </label>
+
+      <button class="sub-btn" id="saveSettings">
+        設定を保存
+      </button>
+
+    </div>
+
+
+    <!-- フォルダ管理 -->
+    <div class="card">
+
+      <h2>📁 試合フォルダ</h2>
+
+      <p class="folder-description">
+        「大人との試合」「友達との試合」「大会」など、
+        好きな分類を作れます。
+      </p>
+
+      <div id="folderList"></div>
+
+      <div class="folder-create">
+
+        <input
+          id="newFolderName"
+          placeholder="新しいフォルダ名"
+        >
+
+        <button class="sub-btn" id="addFolder">
+          ＋ フォルダを作る
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>データ</h2>
+
+      <button class="sub-btn" id="export">
+        📤 バックアップを書き出す
+      </button>
+
+      <label class="file-btn">
+        📥 バックアップを読み込む
+        <input
+          type="file"
+          id="import"
+          accept=".json"
+        >
+      </label>
+
+      <button class="danger" id="clear">
+        全データ削除
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= NAV ================= -->
+  <nav class="nav">
+
+    <button data-page="home">
+      🏠
+      <small>ホーム</small>
+    </button>
+
+    <button data-page="stats">
+      📊
+      <small>成績</small>
+    </button>
+
+    <button data-page="matches">
+      📋
+      <small>試合</small>
+    </button>
+
+    <button data-page="settings">
+      ⚙️
+      <small>設定</small>
+    </button>
+
+  </nav>
+
+</div>
+
+
+<div id="toast"></div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
