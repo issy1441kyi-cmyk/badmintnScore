@@ -1,5 +1,6 @@
 const MATCH_KEY = "badminton_matches_v7";
 const SET_KEY = "badminton_settings_v7";
+const FOLDER_KEY = "badminton_folders_v7";
 
 let matches = load(MATCH_KEY, []);
 
@@ -7,18 +8,23 @@ let settings = {
   playerName: "",
   games: 3,
   target: 21,
-  folders: [],
   ...load(SET_KEY, {})
 };
 
-if (!Array.isArray(settings.folders)) {
-  settings.folders = [];
+let folders = load(FOLDER_KEY, []);
+
+if (!folders.length) {
+  folders = [
+    {
+      id: "default",
+      name: "すべて"
+    }
+  ];
 }
 
 let current = null;
 
-
-/* ================= 基本 ================= */
+let lastPointTime = 0;
 
 const $ = id => document.getElementById(id);
 
@@ -33,6 +39,7 @@ function load(key, fallback) {
 function save() {
   localStorage.setItem(MATCH_KEY, JSON.stringify(matches));
   localStorage.setItem(SET_KEY, JSON.stringify(settings));
+  localStorage.setItem(FOLDER_KEY, JSON.stringify(folders));
 }
 
 function today() {
@@ -60,25 +67,27 @@ function toast(text) {
   e.textContent = text;
   e.classList.add("show");
 
-  clearTimeout(window.toastTimer);
-
-  window.toastTimer = setTimeout(() => {
+  setTimeout(() => {
     e.classList.remove("show");
   }, 1300);
 }
 
 
-/* ================= 効果音 ================= */
+/* =========================
+   効果音
+========================= */
 
 let audioContext = null;
 
-function playRacketSound() {
+function racketSound() {
 
   try {
 
     if (!audioContext) {
-      audioContext =
-        new (window.AudioContext || window.webkitAudioContext)();
+      audioContext = new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
     }
 
     if (audioContext.state === "suspended") {
@@ -87,35 +96,33 @@ function playRacketSound() {
 
     const now = audioContext.currentTime;
 
-    /*
-      「カコン！」っぽい短い打撃音をWebAudioで作る。
-      外部ファイル不要。
-    */
-
+    // ラケットに当たる「カッ」という音
     const osc = audioContext.createOscillator();
     const gain = audioContext.createGain();
 
     osc.type = "triangle";
-    osc.frequency.setValueAtTime(1250, now);
-    osc.frequency.exponentialRampToValueAtTime(260, now + 0.08);
+    osc.frequency.setValueAtTime(950, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.07);
 
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.32, now + 0.004);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.085);
+    gain.gain.exponentialRampToValueAtTime(0.32, now + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
 
     osc.connect(gain);
     gain.connect(audioContext.destination);
 
     osc.start(now);
-    osc.stop(now + 0.09);
+    osc.stop(now + 0.1);
 
-  } catch {
-    // 音が使えない環境でも試合自体は続行
+  } catch (e) {
+    // 音が使えない環境でも得点処理は続ける
   }
 }
 
 
-/* ================= 画面切替 ================= */
+/* =========================
+   ページ
+========================= */
 
 function page(id) {
 
@@ -123,15 +130,9 @@ function page(id) {
     .forEach(x => x.classList.toggle("active", x.id === id));
 
   document.querySelectorAll(".nav button")
-    .forEach(x => x.classList.toggle(
-      "active",
-      x.dataset.page === id
-    ));
+    .forEach(x => x.classList.toggle("active", x.dataset.page === id));
 
-  document.body.classList.toggle(
-    "live-mode",
-    id === "live"
-  );
+  document.body.classList.toggle("live-mode", id === "live");
 
   window.scrollTo(0, 0);
 
@@ -142,7 +143,9 @@ function page(id) {
 }
 
 
-/* ================= ホーム ================= */
+/* =========================
+   ホーム
+========================= */
 
 function home() {
 
@@ -155,31 +158,27 @@ function home() {
   $("rate").textContent =
     `勝率 ${matches.length ? Math.round(w / matches.length * 100) : 0}%`;
 
-  const a = [...matches]
-    .sort((x, y) => y.createdAt - x.createdAt)
+  const recent = [...matches]
+    .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, 5);
 
   $("recentMatches").innerHTML =
-    a.length
-      ? a.map(item).join("")
+    recent.length
+      ? recent.map(item).join("")
       : `<div class="empty">まだ試合がありません🏸</div>`;
 }
 
 
-/* ================= 試合カード ================= */
+/* =========================
+   試合カード
+========================= */
 
 function item(m) {
 
-  const folder =
-    m.folder
-      ? `📁 ${esc(m.folder)}`
-      : "📁 未分類";
+  const folder = folders.find(f => f.id === m.folderId);
 
   return `
-    <button
-      class="match-item"
-      data-id="${esc(m.id)}"
-    >
+    <button class="match-item" data-id="${esc(m.id)}">
 
       <span>
 
@@ -188,15 +187,12 @@ function item(m) {
         </strong>
 
         <small>
+          ${esc(folder?.name || "未分類")}
+          ・
           ${esc(m.date)}
           ・
-          ${esc(m.opName || "相手")}
-          vs
+          ${esc(m.opName || "相手")} vs
           ${esc(m.meName || "自分")}
-        </small>
-
-        <small class="folder-line">
-          ${folder}
         </small>
 
       </span>
@@ -216,148 +212,167 @@ function item(m) {
 }
 
 
-/* ================= フォルダ ================= */
+/* =========================
+   フォルダ
+========================= */
 
 function renderFolderSelect() {
 
-  const select = $("folder");
+  const select = $("folderSelect");
 
-  if (!select) return;
-
-  const currentValue = select.value;
+  const customFolders = folders.filter(f => f.id !== "default");
 
   select.innerHTML =
-    `<option value="">未分類</option>` +
-    settings.folders
-      .map(name => `
-        <option value="${esc(name)}">
-          ${esc(name)}
-        </option>
-      `)
-      .join("");
-
-  if (
-    settings.folders.includes(currentValue) ||
-    currentValue === ""
-  ) {
-    select.value = currentValue;
-  }
+    `<option value="default">未分類</option>` +
+    customFolders.map(f =>
+      `<option value="${esc(f.id)}">${esc(f.name)}</option>`
+    ).join("");
 }
 
 
-function renderFolderList() {
+function renderFolderTabs(selected = "all") {
 
-  const box = $("folderList");
+  $("folderTabs").innerHTML = `
+    <button class="folder-tab ${selected === "all" ? "selected" : ""}" data-folder="all">
+      すべて
+    </button>
 
-  if (!box) return;
-
-  if (!settings.folders.length) {
-
-    box.innerHTML = `
-      <div class="empty small-empty">
-        まだフォルダはありません。
-      </div>
-    `;
-
-    return;
-  }
-
-  box.innerHTML = settings.folders.map(folder => {
-
-    const count = matches.filter(
-      m => m.folder === folder
-    ).length;
-
-    return `
-      <div class="folder-row">
-
-        <div>
-          <strong>📁 ${esc(folder)}</strong>
-          <small>${count}試合</small>
-        </div>
-
+    ${folders
+      .filter(f => f.id !== "default")
+      .map(f => `
         <button
-          class="folder-delete"
-          data-folder-delete="${esc(folder)}"
-        >
-          削除
+          class="folder-tab ${selected === f.id ? "selected" : ""}"
+          data-folder="${esc(f.id)}">
+          📁 ${esc(f.name)}
         </button>
+      `)
+      .join("")}
+  `;
 
-      </div>
-    `;
+  document.querySelectorAll(".folder-tab").forEach(btn => {
 
-  }).join("");
+    btn.onclick = () => {
+
+      renderFolderTabs(btn.dataset.folder);
+
+      list(btn.dataset.folder);
+
+    };
+
+  });
+}
+
+
+function renderFolderManage() {
+
+  const customFolders = folders.filter(f => f.id !== "default");
+
+  $("folderManage").innerHTML =
+    customFolders.length
+      ? customFolders.map(f => {
+
+          const count = matches.filter(
+            m => m.folderId === f.id
+          ).length;
+
+          return `
+            <div class="folder-row">
+
+              <span>
+                📁 <b>${esc(f.name)}</b>
+                <small>${count}試合</small>
+              </span>
+
+              <button
+                class="folder-delete"
+                data-folder-delete="${esc(f.id)}">
+                🗑️
+              </button>
+
+            </div>
+          `;
+
+        }).join("")
+      : `<div class="empty small-empty">
+           まだフォルダはありません
+         </div>`;
+
+  document.querySelectorAll("[data-folder-delete]").forEach(btn => {
+
+    btn.onclick = () => {
+
+      const id = btn.dataset.folderDelete;
+
+      const folder = folders.find(f => f.id === id);
+
+      if (!folder) return;
+
+      if (
+        !confirm(
+          `「${folder.name}」を削除しますか？\n\n試合データは削除されません。未分類になります。`
+        )
+      ) return;
+
+      matches.forEach(m => {
+
+        if (m.folderId === id) {
+          m.folderId = "default";
+        }
+
+      });
+
+      folders = folders.filter(f => f.id !== id);
+
+      save();
+
+      renderFolderManage();
+      renderFolderSelect();
+
+      toast("フォルダを削除しました");
+
+    };
+
+  });
 }
 
 
 function addFolder() {
 
-  const input = $("newFolderName");
-
-  const name = input.value.trim();
+  const name = $("newFolderName").value.trim();
 
   if (!name) {
     toast("フォルダ名を入力してください");
     return;
   }
 
-  if (settings.folders.includes(name)) {
-    toast("そのフォルダはすでにあります");
+  if (
+    folders.some(
+      f => f.name.toLowerCase() === name.toLowerCase()
+    )
+  ) {
+    toast("同じ名前のフォルダがあります");
     return;
   }
 
-  settings.folders.push(name);
-
-  save();
-
-  input.value = "";
-
-  renderFolderList();
-  renderFolderSelect();
-
-  toast("フォルダを作りました");
-}
-
-
-function deleteFolder(name) {
-
-  const used = matches.filter(
-    m => m.folder === name
-  ).length;
-
-  let message =
-    `「${name}」を削除しますか？`;
-
-  if (used) {
-    message +=
-      `\nこのフォルダには${used}試合あります。`;
-    message +=
-      "\n試合は削除されず「未分類」になります。";
-  }
-
-  if (!confirm(message)) return;
-
-  matches.forEach(m => {
-
-    if (m.folder === name) {
-      m.folder = "";
-    }
-
+  folders.push({
+    id: "folder_" + Date.now(),
+    name
   });
 
-  settings.folders =
-    settings.folders.filter(x => x !== name);
+  $("newFolderName").value = "";
 
   save();
 
-  renderFolderList();
+  renderFolderManage();
   renderFolderSelect();
 
-  toast("フォルダを削除しました");
+  toast("フォルダを追加しました");
 }
 
 
-/* ================= 新しい試合 ================= */
+/* =========================
+   新しい試合
+========================= */
 
 function newMatch() {
 
@@ -374,13 +389,15 @@ function newMatch() {
 
   renderFolderSelect();
 
-  $("folder").value = "";
+  $("folderSelect").value = "default";
 
   page("setup");
 }
 
 
-/* ================= 試合開始 ================= */
+/* =========================
+   試合開始
+========================= */
 
 function start() {
 
@@ -390,6 +407,8 @@ function start() {
 
     createdAt: Date.now(),
 
+    folderId: $("folderSelect").value,
+
     date: $("date").value || today(),
 
     type: $("type").value,
@@ -397,8 +416,6 @@ function start() {
     gamesMax: +$("games").value,
 
     target: +$("target").value,
-
-    folder: $("folder").value || "",
 
     meName:
       $("meName").value.trim() || "自分",
@@ -432,11 +449,8 @@ function start() {
   page("live");
 
   toast("試合開始！");
-
 }
 
-
-/* ================= ゲーム ================= */
 
 function makeGame() {
 
@@ -449,36 +463,25 @@ function makeGame() {
 }
 
 
-/* ================= 連打防止 ================= */
-
-let pointLocked = false;
-
-const POINT_DELAY = 350;
-
-
-/* ================= 得点 ================= */
+/* =========================
+   得点
+========================= */
 
 function point(who) {
 
   if (!current) return;
 
+  const now = Date.now();
+
   /*
-    連打防止。
-    350ms以内にもう一度押しても無視。
+    ここが連打防止。
+    250ms以内の連続タップは無視。
   */
-
-  if (pointLocked) {
-
+  if (now - lastPointTime < 250) {
     return;
-
   }
 
-  pointLocked = true;
-
-  setTimeout(() => {
-    pointLocked = false;
-  }, POINT_DELAY);
-
+  lastPointTime = now;
 
   const g = current.game;
 
@@ -490,19 +493,15 @@ function point(who) {
 
   g.points.push(who);
 
-  playRacketSound();
+  racketSound();
 
   updateLive();
-
 
   if (finished(g)) {
 
     setTimeout(() => {
 
-      if (
-        current &&
-        current.game === g
-      ) {
+      if (current && current.game === g) {
         endGame(true);
       }
 
@@ -513,8 +512,6 @@ function point(who) {
 }
 
 
-/* ================= ゲーム終了判定 ================= */
-
 function finished(g) {
 
   const t = current.target;
@@ -522,20 +519,16 @@ function finished(g) {
   return (
     g.me >= 30 ||
     g.op >= 30 ||
-    (
-      g.me >= t &&
-      g.me - g.op >= 2
-    ) ||
-    (
-      g.op >= t &&
-      g.op - g.me >= 2
-    )
+    (g.me >= t && g.me - g.op >= 2) ||
+    (g.op >= t && g.op - g.me >= 2)
   );
 
 }
 
 
-/* ================= ゲーム終了 ================= */
+/* =========================
+   ゲーム終了
+========================= */
 
 function endGame(force = false) {
 
@@ -549,17 +542,13 @@ function endGame(force = false) {
 
   }
 
-
   if (
     !force &&
     !finished(g) &&
-    !confirm(
-      "このゲームを現在の得点で終了しますか？"
-    )
+    !confirm("このゲームを現在の得点で終了しますか？")
   ) {
     return;
   }
-
 
   current.games.push({
 
@@ -581,20 +570,14 @@ function endGame(force = false) {
 
   });
 
-
   const need =
     Math.floor(current.gamesMax / 2) + 1;
 
   const m =
-    current.games.filter(
-      g => g.winner === "me"
-    ).length;
+    current.games.filter(g => g.winner === "me").length;
 
   const o =
-    current.games.filter(
-      g => g.winner === "op"
-    ).length;
-
+    current.games.filter(g => g.winner === "op").length;
 
   if (
     m >= need ||
@@ -608,19 +591,18 @@ function endGame(force = false) {
 
   }
 
-
   current.game = makeGame();
 
   updateLive();
 
-  toast(
-    `第${current.games.length + 1}ゲーム開始`
-  );
+  toast(`第${current.games.length + 1}ゲーム開始`);
 
 }
 
 
-/* ================= 取り消し ================= */
+/* =========================
+   取り消し
+========================= */
 
 function undo() {
 
@@ -637,21 +619,21 @@ function undo() {
   g.points.pop();
 
   g.me =
-    g.points.filter(
-      x => x === "me"
-    ).length;
+    g.points.filter(x => x === "me").length;
 
   g.op =
-    g.points.filter(
-      x => x === "op"
-    ).length;
+    g.points.filter(x => x === "op").length;
 
   updateLive();
+
+  toast("1点取り消しました");
 
 }
 
 
-/* ================= LIVE更新 ================= */
+/* =========================
+   試合中画面
+========================= */
 
 function updateLive() {
 
@@ -670,6 +652,8 @@ function updateLive() {
       x => x.winner === "op"
     ).length;
 
+  const folder =
+    folders.find(f => f.id === current.folderId);
 
   $("gameTitle").textContent =
     `第${gn}ゲーム`;
@@ -677,20 +661,17 @@ function updateLive() {
   $("gameSub").textContent =
     `GAME ${gn}`;
 
+  $("liveFolder").textContent =
+    folder?.name || "未分類";
+
   $("liveType").textContent =
     current.type;
 
   $("liveRule").textContent =
     `${current.target}点`;
 
-  $("liveFolder").textContent =
-    current.folder
-      ? `📁 ${current.folder}`
-      : "📁 未分類";
-
   $("matchGamesScore").textContent =
     `${m}-${o}`;
-
 
   $("opLabel").textContent =
     current.opLabel;
@@ -704,13 +685,11 @@ function updateLive() {
   $("meNameLive").textContent =
     current.meName;
 
-
   $("opScore").textContent =
     g.op;
 
   $("meScore").textContent =
     g.me;
-
 
   $("gameScore").textContent =
     `${m} - ${o}`;
@@ -721,81 +700,57 @@ function updateLive() {
   $("rallyCount").textContent =
     `${g.points.length}回`;
 
-
   renderTable();
 
 }
 
 
-/* ================= 得点表 ================= */
+/* =========================
+   得点表
+========================= */
 
 function renderTable() {
 
-  const p = current.game.points;
+  const p =
+    current.game.points;
 
-  const head = `
-    <thead>
+  const head =
+    `<thead>
       <tr>
         <th></th>
-
-        ${p.map((_, i) =>
-          `<th>${i + 1}</th>`
-        ).join("")}
-
+        ${p.map((_, i) => `<th>${i + 1}</th>`).join("")}
       </tr>
-    </thead>
-  `;
+    </thead>`;
 
+  const op =
+    `<tr>
+      <th class="op">🔴 相手</th>
+      ${
+        p.map((x, i) =>
+          x === "op"
+            ? `<td class="op">
+                ${p.slice(0, i + 1)
+                  .filter(y => y === "op").length}
+              </td>`
+            : `<td></td>`
+        ).join("")
+      }
+    </tr>`;
 
-  const op = `
-    <tr>
-
-      <th class="op">
-        🔴 相手
-      </th>
-
-      ${p.map((x, i) =>
-        x === "op"
-          ? `
-            <td class="op">
-              ${
-                p.slice(0, i + 1)
-                  .filter(y => y === "op")
-                  .length
-              }
-            </td>
-          `
-          : `<td></td>`
-      ).join("")}
-
-    </tr>
-  `;
-
-
-  const me = `
-    <tr>
-
-      <th class="me">
-        🔵 自分
-      </th>
-
-      ${p.map((x, i) =>
-        x === "me"
-          ? `
-            <td class="me">
-              ${
-                p.slice(0, i + 1)
-                  .filter(y => y === "me")
-                  .length
-              }
-            </td>
-          `
-          : `<td></td>`
-      ).join("")}
-
-    </tr>
-  `;
-
+  const me =
+    `<tr>
+      <th class="me">🔵 自分</th>
+      ${
+        p.map((x, i) =>
+          x === "me"
+            ? `<td class="me">
+                ${p.slice(0, i + 1)
+                  .filter(y => y === "me").length}
+              </td>`
+            : `<td></td>`
+        ).join("")
+      }
+    </tr>`;
 
   $("scoreTable").className =
     "score-table";
@@ -810,7 +765,9 @@ function renderTable() {
 }
 
 
-/* ================= 試合終了 ================= */
+/* =========================
+   試合終了
+========================= */
 
 function finishMatch() {
 
@@ -824,13 +781,11 @@ function finishMatch() {
       g => g.winner === "op"
     ).length;
 
-
   current.gameScore =
     `${o} - ${m}`;
 
   current.result =
     m > o ? "win" : "loss";
-
 
   renderResult();
 
@@ -839,19 +794,13 @@ function finishMatch() {
 }
 
 
-/* ================= 結果画面 ================= */
-
 function renderResult() {
 
   $("resultTop").innerHTML = `
 
     <div class="result-box">
 
-      <div class="result ${
-        current.result === "win"
-          ? "blue"
-          : "red"
-      }">
+      <div class="result ${current.result === "win" ? "blue" : "red"}">
 
         ${
           current.result === "win"
@@ -879,17 +828,8 @@ function renderResult() {
         ${esc(current.weather)}
       </p>
 
-      <p>
-        ${
-          current.folder
-            ? `📁 ${esc(current.folder)}`
-            : "📁 未分類"
-        }
-      </p>
-
     </div>
   `;
-
 
   $("resultGames").innerHTML =
     current.games.map(g => `
@@ -908,12 +848,9 @@ function renderResult() {
 
     `).join("");
 
-
   document
     .querySelectorAll(".tag")
-    .forEach(x =>
-      x.classList.remove("selected")
-    );
+    .forEach(x => x.classList.remove("selected"));
 
   $("improve").value = "";
   $("memo").value = "";
@@ -921,25 +858,21 @@ function renderResult() {
 }
 
 
-/* ================= 保存 ================= */
+/* =========================
+   保存
+========================= */
 
 function saveMatch() {
 
   current.good =
-    [
-      ...document.querySelectorAll(
-        ".tag.selected"
-      )
-    ].map(
-      x => x.dataset.tag
-    );
+    [...document.querySelectorAll(".tag.selected")]
+      .map(x => x.dataset.tag);
 
   current.improve =
     $("improve").value;
 
   current.memo =
     $("memo").value;
-
 
   delete current.game;
 
@@ -959,48 +892,63 @@ function saveMatch() {
 }
 
 
-/* ================= 試合一覧 ================= */
+/* =========================
+   試合一覧
+========================= */
 
-function list() {
+let selectedFolder = "all";
+
+function list(folder = selectedFolder) {
+
+  selectedFolder = folder;
+
+  renderFolderTabs(folder);
 
   const q =
     $("search").value.toLowerCase();
 
-
-  const a =
+  let a =
     [...matches]
       .sort(
         (x, y) =>
           y.createdAt - x.createdAt
-      )
-      .filter(m =>
-        [
-          m.event,
-          m.opName,
-          m.meName,
-          m.place,
-          m.date,
-          m.folder
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(q)
       );
 
+  if (folder !== "all") {
+
+    a =
+      a.filter(
+        m => m.folderId === folder
+      );
+
+  }
+
+  a =
+    a.filter(m =>
+      [
+        m.event,
+        m.opName,
+        m.meName,
+        m.place,
+        m.date
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
 
   $("matchList").innerHTML =
     a.length
       ? a.map(item).join("")
-      : `
-        <div class="empty">
-          試合がありません
-        </div>
-      `;
-
+      : `<div class="empty">
+           試合がありません
+         </div>`;
 }
 
 
-/* ================= 詳細 ================= */
+/* =========================
+   詳細
+========================= */
 
 function detail(id) {
 
@@ -1009,16 +957,14 @@ function detail(id) {
 
   if (!m) return;
 
+  const folder =
+    folders.find(f => f.id === m.folderId);
 
   $("detailBody").innerHTML = `
 
     <div class="result-box">
 
-      <div class="result ${
-        m.result === "win"
-          ? "blue"
-          : "red"
-      }">
+      <div class="result ${m.result === "win" ? "blue" : "red"}">
 
         ${
           m.result === "win"
@@ -1042,36 +988,38 @@ function detail(id) {
 
     </div>
 
-
     <div class="card detail-meta">
 
-      日付：${esc(m.date)}
-      <br>
-
-      種目：${esc(m.type)}
-      <br>
-
-      大会：${esc(m.event || "-")}
-      <br>
-
-      場所：${esc(m.place || "-")}
-      <br>
-
-      天気：${esc(m.weather)}
-      <br>
-
       📁 フォルダ：
-      ${esc(m.folder || "未分類")}
+      ${esc(folder?.name || "未分類")}
+      <br>
+
+      日付：
+      ${esc(m.date)}
+      <br>
+
+      種目：
+      ${esc(m.type)}
+      <br>
+
+      大会：
+      ${esc(m.event || "-")}
+      <br>
+
+      場所：
+      ${esc(m.place || "-")}
+      <br>
+
+      天気：
+      ${esc(m.weather)}
 
     </div>
 
-  `
-
-  + m.games.map(
-    g => gameDetail(m, g)
-  ).join("")
-
-  + `
+    ${
+      m.games
+        .map(g => gameDetail(m, g))
+        .join("")
+    }
 
     <div class="card">
 
@@ -1084,13 +1032,11 @@ function detail(id) {
         )}
       </p>
 
-
       <h3>🔧 改善点</h3>
 
       <p>
         ${esc(m.improve || "なし")}
       </p>
-
 
       <h3>📝 メモ</h3>
 
@@ -1098,14 +1044,9 @@ function detail(id) {
         ${esc(m.memo || "なし")}
       </p>
 
-
-      <button
-        class="sub-btn"
-        id="editNotes"
-      >
+      <button class="sub-btn" id="editNotes">
         ✏️ メモ・改善点を編集
       </button>
-
 
       <div
         id="editNotesArea"
@@ -1116,10 +1057,7 @@ function detail(id) {
           ⭐ 良かったところ
         </label>
 
-        <div
-          class="tags"
-          id="detailTags"
-        >
+        <div class="tags" id="detailTags">
 
           ${[
             "サーブ",
@@ -1131,18 +1069,14 @@ function detail(id) {
             "フットワーク",
             "集中力"
           ].map(tag => `
-
             <button
               class="tag"
-              data-tag="${tag}"
-            >
+              data-tag="${tag}">
               ${tag}
             </button>
-
           `).join("")}
 
         </div>
-
 
         <label>
           🔧 改善したいところ
@@ -1154,7 +1088,6 @@ function detail(id) {
 
         </label>
 
-
         <label>
           📝 メモ
 
@@ -1165,11 +1098,9 @@ function detail(id) {
 
         </label>
 
-
         <button
           class="main-btn"
-          id="saveNotes"
-        >
+          id="saveNotes">
           💾 変更を保存
         </button>
 
@@ -1177,14 +1108,11 @@ function detail(id) {
 
     </div>
 
-
     <button
       class="danger"
-      id="deleteMatch"
-    >
+      id="deleteMatch">
       🗑️ この試合を削除
     </button>
-
   `;
 
 
@@ -1193,11 +1121,8 @@ function detail(id) {
     $("editNotesArea").style.display =
       "block";
 
-
     document
-      .querySelectorAll(
-        "#detailTags .tag"
-      )
+      .querySelectorAll("#detailTags .tag")
       .forEach(t => {
 
         t.classList.toggle(
@@ -1214,13 +1139,6 @@ function detail(id) {
 
       });
 
-
-    $("editNotesArea")
-      .scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-
   };
 
 
@@ -1231,7 +1149,6 @@ function detail(id) {
 
     if (!found) return;
 
-
     found.good =
       [
         ...document.querySelectorAll(
@@ -1241,13 +1158,11 @@ function detail(id) {
         t => t.dataset.tag
       );
 
-
     found.improve =
       $("detailImprove").value;
 
     found.memo =
       $("detailMemo").value;
-
 
     save();
 
@@ -1263,21 +1178,21 @@ function detail(id) {
   $("deleteMatch").onclick = () => {
 
     if (
-      confirm("削除しますか？")
-    ) {
+      !confirm(
+        "この試合を削除しますか？"
+      )
+    ) return;
 
-      matches =
-        matches.filter(
-          x => x.id !== id
-        );
+    matches =
+      matches.filter(
+        x => x.id !== id
+      );
 
-      save();
+    save();
 
-      page("matches");
+    page("matches");
 
-      toast("削除しました");
-
-    }
+    toast("削除しました");
 
   };
 
@@ -1287,79 +1202,60 @@ function detail(id) {
 }
 
 
-/* ================= ゲーム詳細 ================= */
-
 function gameDetail(m, g) {
 
-  const head = `
-    <thead>
+  const head =
+    `<thead>
       <tr>
         <th></th>
-
-        ${g.points.map(
-          (_, i) =>
-            `<th>${i + 1}</th>`
-        ).join("")}
-
+        ${
+          g.points.map(
+            (_, i) =>
+              `<th>${i + 1}</th>`
+          ).join("")
+        }
       </tr>
-    </thead>
-  `;
+    </thead>`;
 
+  const op =
+    `<tr>
+      <th class="op">🔴 相手</th>
+      ${
+        g.points.map((x, i) =>
+          x === "op"
+            ? `<td class="op">
+                ${
+                  g.points
+                    .slice(0, i + 1)
+                    .filter(y => y === "op")
+                    .length
+                }
+              </td>`
+            : `<td></td>`
+        ).join("")
+      }
+    </tr>`;
 
-  const op = `
-    <tr>
-
-      <th class="op">
-        🔴 相手
-      </th>
-
-      ${g.points.map((x, i) =>
-        x === "op"
-          ? `
-            <td class="op">
-              ${
-                g.points
-                  .slice(0, i + 1)
-                  .filter(y => y === "op")
-                  .length
-              }
-            </td>
-          `
-          : `<td></td>`
-      ).join("")}
-
-    </tr>
-  `;
-
-
-  const me = `
-    <tr>
-
-      <th class="me">
-        🔵 自分
-      </th>
-
-      ${g.points.map((x, i) =>
-        x === "me"
-          ? `
-            <td class="me">
-              ${
-                g.points
-                  .slice(0, i + 1)
-                  .filter(y => y === "me")
-                  .length
-              }
-            </td>
-          `
-          : `<td></td>`
-      ).join("")}
-
-    </tr>
-  `;
-
+  const me =
+    `<tr>
+      <th class="me">🔵 自分</th>
+      ${
+        g.points.map((x, i) =>
+          x === "me"
+            ? `<td class="me">
+                ${
+                  g.points
+                    .slice(0, i + 1)
+                    .filter(y => y === "me")
+                    .length
+                }
+              </td>`
+            : `<td></td>`
+        ).join("")
+      }
+    </tr>`;
 
   return `
-
     <div class="card detail-game">
 
       <h2>
@@ -1384,13 +1280,14 @@ function gameDetail(m, g) {
       </div>
 
     </div>
-
   `;
 
 }
 
 
-/* ================= 成績 ================= */
+/* =========================
+   成績
+========================= */
 
 function stats() {
 
@@ -1403,7 +1300,6 @@ function stats() {
     matches.filter(
       x => x.result === "loss"
     ).length;
-
 
   $("sMatches").textContent =
     matches.length;
@@ -1422,80 +1318,70 @@ function stats() {
     }%`;
 
 
-  /* ---------- フォルダ別 ---------- */
+  /* フォルダ別 */
 
-  const folderNames = [
-    "未分類",
-    ...settings.folders
+  const custom =
+    folders.filter(
+      f => f.id !== "default"
+    );
+
+  const allFolderData = [
+    {
+      id: "default",
+      name: "未分類"
+    },
+    ...custom
   ];
 
-
   $("folderStats").innerHTML =
-    folderNames.map(folder => {
+    allFolderData.map(f => {
 
-      const arr =
-        matches.filter(m =>
-          folder === "未分類"
-            ? !m.folder
-            : m.folder === folder
+      const ms =
+        matches.filter(
+          m => m.folderId === f.id
         );
 
-
       const wins =
-        arr.filter(
+        ms.filter(
           m => m.result === "win"
         ).length;
 
       const losses =
-        arr.filter(
+        ms.filter(
           m => m.result === "loss"
         ).length;
 
       const rate =
-        arr.length
+        ms.length
           ? Math.round(
-              wins / arr.length * 100
+              wins / ms.length * 100
             )
           : 0;
-
 
       return `
 
         <div class="folder-stat">
 
-          <div class="folder-stat-title">
-
-            <strong>
-              📁 ${esc(folder)}
-            </strong>
-
-            <b>
-              勝率 ${rate}%
-            </b>
-
+          <div>
+            <b>📁 ${esc(f.name)}</b>
+            <small>
+              ${ms.length}試合
+            </small>
           </div>
 
-          <div class="folder-stat-detail">
+          <div class="folder-stat-numbers">
 
-            ${arr.length}試合
-            　
             <span class="blue">
               ${wins}勝
             </span>
-
-            　
 
             <span class="red">
               ${losses}敗
             </span>
 
-          </div>
-
-          <div class="folder-progress">
-
-            <span
-              style="width:${rate}%"
-            ></span>
+            <strong>
+              ${rate}%
+            </strong>
 
           </div>
 
@@ -1506,7 +1392,7 @@ function stats() {
     }).join("");
 
 
-  /* ---------- 最近の勝敗 ---------- */
+  /* 勝敗グラフ */
 
   const a =
     [...matches]
@@ -1516,43 +1402,34 @@ function stats() {
       )
       .slice(-15);
 
-
   $("chart").innerHTML =
     a.length
       ? `
         <div class="chart-bars">
-
-          ${a.map(x => `
-
-            <div
-              class="bar ${
-                x.result === "win"
-                  ? "win"
-                  : "loss"
-              }"
-              title="${
-                x.folder || "未分類"
-              }"
-            >
-              ${
-                x.result === "win"
-                  ? "○"
-                  : "×"
-              }
-            </div>
-
-          `).join("")}
-
+          ${
+            a.map(x => `
+              <div
+                class="bar ${
+                  x.result === "win"
+                    ? "win"
+                    : "loss"
+                }">
+                ${
+                  x.result === "win"
+                    ? "○"
+                    : "×"
+                }
+              </div>
+            `).join("")
+          }
         </div>
       `
-      : `
-        <div class="empty">
-          まだありません
-        </div>
-      `;
+      : `<div class="empty">
+           まだありません
+         </div>`;
 
 
-  /* ---------- 良かったところ ---------- */
+  /* 良かったところ */
 
   const c = {};
 
@@ -1560,37 +1437,35 @@ function stats() {
 
     (m.good || []).forEach(x => {
 
-      c[x] = (c[x] || 0) + 1;
+      c[x] =
+        (c[x] || 0) + 1;
 
     });
 
   });
 
-
   $("goodStats").innerHTML =
     Object.entries(c)
-      .sort(
-        (a, b) => b[1] - a[1]
-      )
-      .map(x => `
-        <p>
+      .sort((a, b) => b[1] - a[1])
+      .map(x =>
+        `<p>
           <b>${esc(x[0])}</b>
           　
           ${x[1]}回
-        </p>
-      `)
+        </p>`
+      )
       .join("")
       ||
-      `
-        <div class="empty">
-          まだありません
-        </div>
-      `;
+      `<div class="empty">
+        まだありません
+      </div>`;
 
 }
 
 
-/* ================= 設定 ================= */
+/* =========================
+   設定
+========================= */
 
 function settingsForm() {
 
@@ -1603,73 +1478,73 @@ function settingsForm() {
   $("settingTarget").value =
     settings.target;
 
-
-  renderFolderList();
+  renderFolderManage();
+  renderFolderSelect();
 
 }
 
 
-/* ================= バックアップ ================= */
+/* =========================
+   バックアップ
+========================= */
 
 function backup() {
 
-  const b =
+  const blob =
     new Blob(
       [
         JSON.stringify(
           {
             settings,
-            matches
+            matches,
+            folders
           },
           null,
           2
         )
       ],
       {
-        type: "application/json"
+        type:
+          "application/json"
       }
     );
 
-
-  const u =
-    URL.createObjectURL(b);
+  const url =
+    URL.createObjectURL(blob);
 
   const a =
     document.createElement("a");
 
-  a.href = u;
+  a.href = url;
 
   a.download =
     `badminton-backup-${today()}.json`;
 
   a.click();
 
-  URL.revokeObjectURL(u);
+  URL.revokeObjectURL(url);
 
 }
 
 
-/* ================= イベント ================= */
+/* =========================
+   イベント
+========================= */
 
 function setupEvents() {
 
   $("newMatchBtn").onclick =
     newMatch;
 
-
   $("allMatchesBtn").onclick =
     () => page("matches");
-
 
   $("settingsBtn").onclick =
     () => page("settings");
 
-
   $("startBtn").onclick =
     start;
 
-
-  /* 通常の＋ボタン */
 
   $("opPoint").onclick =
     () => point("op");
@@ -1678,10 +1553,7 @@ function setupEvents() {
     () => point("me");
 
 
-  /*
-    得点そのものを押しても加点。
-    横画面で特に使いやすい。
-  */
+  /* 横向きの得点部分 */
 
   $("opScoreArea").onclick =
     () => point("op");
@@ -1692,7 +1564,6 @@ function setupEvents() {
 
   $("undoBtn").onclick =
     undo;
-
 
   $("finishGame").onclick =
     () => endGame(false);
@@ -1720,17 +1591,19 @@ function setupEvents() {
 
 
   $("search").oninput =
-    list;
+    () => list(selectedFolder);
 
 
   document
     .querySelectorAll(".tag")
-    .forEach(x =>
+    .forEach(x => {
+
       x.onclick = () =>
         x.classList.toggle(
           "selected"
-        )
-    );
+        );
+
+    });
 
 
   $("detailBack").onclick =
@@ -1740,8 +1613,6 @@ function setupEvents() {
   $("saveSettings").onclick = () => {
 
     settings = {
-
-      ...settings,
 
       playerName:
         $("settingName")
@@ -1756,12 +1627,9 @@ function setupEvents() {
 
     };
 
-
     save();
 
-    toast(
-      "設定を保存しました"
-    );
+    toast("設定を保存しました");
 
   };
 
@@ -1782,121 +1650,104 @@ function setupEvents() {
   );
 
 
-  $("folderList").addEventListener(
-    "click",
-    e => {
-
-      const button =
-        e.target.closest(
-          "[data-folder-delete]"
-        );
-
-      if (!button) return;
-
-      deleteFolder(
-        button.dataset.folderDelete
-      );
-
-    }
-  );
-
-
   $("export").onclick =
     backup;
 
 
-  $("import").onchange = e => {
+  $("import").onchange =
+    e => {
 
-    const f =
-      e.target.files[0];
+      const f =
+        e.target.files[0];
 
-    if (!f) return;
+      if (!f) return;
 
+      const reader =
+        new FileReader();
 
-    const r =
-      new FileReader();
+      reader.onload = () => {
 
+        try {
 
-    r.onload = () => {
+          const d =
+            JSON.parse(
+              reader.result
+            );
 
-      try {
+          if (
+            !Array.isArray(
+              d.matches
+            )
+          ) {
+            throw 0;
+          }
 
-        const d =
-          JSON.parse(r.result);
-
-
-        if (
-          !Array.isArray(d.matches)
-        ) {
-          throw 0;
-        }
-
-
-        if (
-          confirm(
-            "現在のデータを置き換えますか？"
-          )
-        ) {
+          if (
+            !confirm(
+              "現在のデータを置き換えますか？"
+            )
+          ) {
+            return;
+          }
 
           matches =
             d.matches;
 
-          settings = {
-            ...settings,
-            ...(d.settings || {})
-          };
-
+          settings =
+            {
+              ...settings,
+              ...(d.settings || {})
+            };
 
           if (
-            !Array.isArray(
-              settings.folders
-            )
+            Array.isArray(d.folders)
           ) {
-            settings.folders = [];
-          }
 
+            folders =
+              d.folders;
+
+          }
 
           save();
 
           home();
 
-          toast("復元しました");
+          toast(
+            "復元しました"
+          );
+
+        } catch {
+
+          alert(
+            "読み込めないファイルです"
+          );
 
         }
 
-      } catch {
+      };
 
-        alert(
-          "読み込めないファイルです"
-        );
-
-      }
+      reader.readAsText(f);
 
     };
-
-
-    r.readAsText(f);
-
-  };
 
 
   $("clear").onclick = () => {
 
     if (
-      confirm(
+      !confirm(
         "全データを削除しますか？"
       )
     ) {
-
-      matches = [];
-
-      save();
-
-      home();
-
-      toast("削除しました");
-
+      return;
     }
+
+    matches = [];
+
+    save();
+
+    home();
+
+    toast("削除しました");
 
   };
 
@@ -1922,9 +1773,7 @@ function setupEvents() {
     e => {
 
       const x =
-        e.target.closest(
-          "[data-id]"
-        );
+        e.target.closest("[data-id]");
 
       if (x) {
         detail(x.dataset.id);
@@ -1936,13 +1785,16 @@ function setupEvents() {
 }
 
 
-/* ================= 起動 ================= */
+/* =========================
+   起動
+========================= */
 
 document.addEventListener(
   "DOMContentLoaded",
   () => {
 
-    $("date").value = today();
+    $("date").value =
+      today();
 
     settingsForm();
 
