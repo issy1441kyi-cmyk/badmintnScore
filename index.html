@@ -44,7 +44,6 @@
 
   <!-- 試合設定 -->
   <section id="setup" class="page">
-
     <header class="page-title">
       <button class="round-btn back-home">←</button>
       <h1>試合設定</h1>
@@ -53,14 +52,18 @@
     <div class="card form">
 
       <label>
+        日付
+        <input type="date" id="date">
+      </label>
+
+      <label>
         フォルダ
         <select id="folderSelect"></select>
       </label>
 
-      <label>
-        日付
-        <input type="date" id="date">
-      </label>
+      <button class="sub-btn" id="manageFoldersBtn">
+        🗂️ フォルダを管理
+      </button>
 
       <label>
         種目
@@ -162,7 +165,9 @@
 
     </div>
 
-    <button class="main-btn" id="startBtn">🏸 試合開始</button>
+    <button class="main-btn" id="startBtn">
+      🏸 試合開始
+    </button>
   </section>
 
 
@@ -181,34 +186,32 @@
     </header>
 
     <div class="chips">
-      <span id="liveFolder"></span>
       <span id="liveType"></span>
       <span id="liveRule"></span>
       <span id="matchGamesScore"></span>
     </div>
 
-    <!-- 横向きではここが大きな得点エリアになる -->
+    <!-- この部分もタップで得点 -->
     <div class="big-score">
 
-      <button class="score-side opponent" id="opScoreArea">
+      <div class="player-score opponent" id="opScoreArea">
         <small id="opLabel">R R</small>
         <b id="opNameLive">相手</b>
         <strong id="opScore">0</strong>
-        <span class="tap-hint">タップで＋1</span>
-      </button>
+        <span class="tap-hint">TAP +1</span>
+      </div>
 
       <div class="dash">-</div>
 
-      <button class="score-side me" id="meScoreArea">
+      <div class="player-score me" id="meScoreArea">
         <small id="meLabel">L S</small>
         <b id="meNameLive">自分</b>
         <strong id="meScore">0</strong>
-        <span class="tap-hint">タップで＋1</span>
-      </button>
+        <span class="tap-hint">TAP +1</span>
+      </div>
 
     </div>
 
-    <!-- 縦向き用ボタン -->
     <div class="score-buttons">
       <button class="point opponent" id="opPoint">
         ＋1
@@ -220,6 +223,8 @@
         <small>🔵 自分</small>
       </button>
     </div>
+
+    <div id="statusMessage" class="status-message"></div>
 
     <div class="table-title">
       <h2>得点表</h2>
@@ -249,7 +254,7 @@
   </section>
 
 
-  <!-- 結果 -->
+  <!-- 試合結果 -->
   <section id="result" class="page">
 
     <header class="page-title">
@@ -266,7 +271,6 @@
       <label>⭐ 良かったところ</label>
 
       <div class="tags">
-
         <button class="tag" data-tag="サーブ">サーブ</button>
         <button class="tag" data-tag="レシーブ">レシーブ</button>
         <button class="tag" data-tag="スマッシュ">スマッシュ</button>
@@ -275,7 +279,6 @@
         <button class="tag" data-tag="ラリー">ラリー</button>
         <button class="tag" data-tag="フットワーク">フットワーク</button>
         <button class="tag" data-tag="集中力">集中力</button>
-
       </div>
 
       <label>
@@ -290,7 +293,9 @@
 
     </div>
 
-    <button class="main-btn" id="saveBtn">💾 保存</button>
+    <button class="main-btn" id="saveBtn">
+      💾 保存
+    </button>
 
   </section>
 
@@ -302,12 +307,10 @@
       <h1>試合一覧</h1>
     </header>
 
-    <div class="folder-tabs" id="folderTabs"></div>
-
     <input
       class="search"
       id="search"
-      placeholder="🔎 大会・名前・場所を検索"
+      placeholder="🔎 大会・名前・場所・フォルダを検索"
     >
 
     <div id="matchList"></div>
@@ -315,7 +318,7 @@
   </section>
 
 
-  <!-- 試合詳細 -->
+  <!-- 詳細 -->
   <section id="detail" class="page">
 
     <header class="page-title">
@@ -360,11 +363,6 @@
     </div>
 
     <div class="card">
-      <h2>📁 フォルダ別成績</h2>
-      <div id="folderStats"></div>
-    </div>
-
-    <div class="card">
       <h2>最近の勝敗</h2>
       <div id="chart"></div>
     </div>
@@ -372,6 +370,11 @@
     <div class="card">
       <h2>⭐ 良かったところ</h2>
       <div id="goodStats"></div>
+    </div>
+
+    <div class="card">
+      <h2>🗂️ フォルダ別成績</h2>
+      <div id="folderStats"></div>
     </div>
 
   </section>
@@ -384,25 +387,6 @@
       <button class="round-btn back-home">←</button>
       <h1>設定</h1>
     </header>
-
-    <!-- フォルダ管理 -->
-    <div class="card">
-
-      <h2>📁 フォルダ</h2>
-
-      <p class="sub-text">
-        「大人との試合」「学校」「大会」など、好きな名前で分けられます。
-      </p>
-
-      <div id="folderManage"></div>
-
-      <div class="folder-add">
-        <input id="newFolderName" placeholder="新しいフォルダ名">
-        <button class="sub-btn" id="addFolder">＋ フォルダを追加</button>
-      </div>
-
-    </div>
-
 
     <div class="card form">
 
@@ -437,6 +421,43 @@
     </div>
 
 
+    <!-- 音声設定 -->
+    <div class="card form">
+
+      <h2>🔊 音声・サウンド</h2>
+
+      <label class="switch-row">
+        <span>
+          音声・効果音
+          <small>得点音と英語アナウンス</small>
+        </span>
+
+        <input type="checkbox" id="soundEnabled">
+      </label>
+
+      <label>
+        音量
+        <input
+          type="range"
+          id="soundVolume"
+          min="0"
+          max="100"
+          value="70"
+        >
+      </label>
+
+      <div class="volume-value">
+        音量 <b id="volumeValue">70%</b>
+      </div>
+
+      <button class="sub-btn" id="testSound">
+        🔊 音をテスト
+      </button>
+
+    </div>
+
+
+    <!-- データ -->
     <div class="card">
 
       <h2>データ</h2>
@@ -447,7 +468,11 @@
 
       <label class="file-btn">
         📥 バックアップを読み込む
-        <input type="file" id="import" accept=".json">
+        <input
+          type="file"
+          id="import"
+          accept=".json"
+        >
       </label>
 
       <button class="danger" id="clear">
@@ -455,6 +480,34 @@
       </button>
 
     </div>
+
+  </section>
+
+
+  <!-- フォルダ -->
+  <section id="folders" class="page">
+
+    <header class="page-title">
+      <button class="round-btn" id="folderBack">←</button>
+      <h1>フォルダ</h1>
+    </header>
+
+    <div class="card">
+
+      <h2>🗂️ 新しいフォルダ</h2>
+
+      <input
+        id="newFolderName"
+        placeholder="例：大人との試合"
+      >
+
+      <button class="main-btn" id="addFolder">
+        ＋ フォルダを作る
+      </button>
+
+    </div>
+
+    <div id="folderList"></div>
 
   </section>
 

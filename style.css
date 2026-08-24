@@ -18,6 +18,7 @@ html,
 body{
   margin:0;
   padding:0;
+  width:100%;
   min-height:100%;
 }
 
@@ -60,11 +61,6 @@ button{
   display:block;
 }
 
-
-/* =========================
-   共通
-========================= */
-
 .header,
 .page-title,
 .live-header,
@@ -105,11 +101,6 @@ h2{
   background:#fff;
   font-size:22px;
 }
-
-
-/* =========================
-   ホーム
-========================= */
 
 .record-card{
   margin-top:20px;
@@ -156,11 +147,6 @@ h2{
   font-weight:800;
 }
 
-
-/* =========================
-   カード
-========================= */
-
 .card,
 .match-item{
   margin-top:10px;
@@ -188,8 +174,10 @@ textarea,
   outline:none;
 }
 
-textarea{
-  resize:vertical;
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--blue);
 }
 
 .player-box{
@@ -206,11 +194,6 @@ textarea{
 .player-box label{
   margin-top:10px;
 }
-
-
-/* =========================
-   試合カード
-========================= */
 
 .match-item{
   width:100%;
@@ -245,78 +228,7 @@ textarea{
 
 
 /* =========================
-   フォルダ
-========================= */
-
-.folder-tabs{
-  display:flex;
-  gap:7px;
-  overflow-x:auto;
-  padding:5px 0 8px;
-  scrollbar-width:none;
-}
-
-.folder-tabs::-webkit-scrollbar{
-  display:none;
-}
-
-.folder-tab{
-  flex:0 0 auto;
-  border:1px solid var(--border);
-  background:#fff;
-  border-radius:999px;
-  padding:9px 13px;
-  font-weight:800;
-  color:var(--sub);
-}
-
-.folder-tab.selected{
-  background:#dbeafe;
-  border-color:var(--blue);
-  color:var(--blue);
-}
-
-.folder-add{
-  margin-top:12px;
-}
-
-.folder-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:11px;
-  border:1px solid var(--border);
-  border-radius:13px;
-  margin-top:8px;
-  background:#f9fafb;
-}
-
-.folder-row span{
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-}
-
-.folder-row small{
-  color:var(--sub);
-  font-size:11px;
-}
-
-.folder-delete{
-  width:40px;
-  height:40px;
-  border:0;
-  border-radius:10px;
-  background:#fee2e2;
-}
-
-.small-empty{
-  padding:15px;
-}
-
-
-/* =========================
-   試合中
+   LIVE
 ========================= */
 
 .live{
@@ -366,94 +278,76 @@ textarea{
 }
 
 
-/* =========================
-   大きな得点
-========================= */
+/* 得点 */
 
 .big-score{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 45px minmax(0,1fr);
+  display:flex;
   align-items:center;
+  justify-content:space-around;
   background:#1f2937;
   border-radius:23px;
-  padding:16px 8px;
+  padding:13px 3px;
 }
 
-.score-side{
+.player-score{
+  width:43%;
   min-width:0;
-  width:100%;
-  border:0;
-  background:transparent;
-  color:#fff;
   text-align:center;
-  padding:5px;
-  border-radius:18px;
+  border-radius:20px;
+  padding:10px 3px;
+  user-select:none;
 }
 
-.score-side:active{
-  transform:scale(.98);
+.player-score:active{
+  transform:scale(.97);
 }
 
-.score-side small,
-.score-side b{
+.player-score small,
+.player-score b{
   display:block;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
 }
 
-.score-side small{
+.player-score small{
   font-size:13px;
   color:#9ca3af;
 }
 
-.score-side b{
-  font-size:16px;
-  line-height:1.3;
-  min-height:21px;
+.player-score b{
+  font-size:15px;
 }
 
-.score-side strong{
+.player-score strong{
   display:block;
   font-size:clamp(76px,23vw,128px);
   line-height:.95;
   font-weight:950;
-  margin-top:4px;
 }
 
-.score-side.opponent strong{
+.player-score.opponent strong{
   color:#f87171;
 }
 
-.score-side.me strong{
+.player-score.me strong{
   color:#60a5fa;
 }
 
-.score-side.opponent:active{
-  background:#3a2020;
-}
-
-.score-side.me:active{
-  background:#202d49;
+.dash{
+  font-size:32px;
+  color:#6b7280;
 }
 
 .tap-hint{
   display:block;
   font-size:10px;
   color:#9ca3af;
-  margin-top:7px;
-}
-
-.dash{
-  font-size:32px;
-  color:#6b7280;
-  text-align:center;
+  margin-top:4px;
 }
 
 
-/* =========================
-   得点ボタン
-========================= */
+/* ＋1ボタン */
 
 .score-buttons{
   display:grid;
@@ -488,10 +382,28 @@ textarea{
   transform:scale(.97);
 }
 
+.point.locked{
+  opacity:.45;
+  pointer-events:none;
+}
 
-/* =========================
-   得点表
-========================= */
+
+/* 状況表示 */
+
+.status-message{
+  min-height:36px;
+  margin-top:8px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  color:#fbbf24;
+  font-weight:950;
+  font-size:16px;
+}
+
+
+/* 得点表 */
 
 .table-title{
   margin:18px 0 8px;
@@ -558,9 +470,7 @@ textarea{
 }
 
 
-/* =========================
-   下部情報
-========================= */
+/* 下 */
 
 .bottom-info{
   display:grid;
@@ -603,7 +513,7 @@ textarea{
 
 
 /* =========================
-   結果
+   RESULT
 ========================= */
 
 .result-box{
@@ -638,7 +548,7 @@ textarea{
 
 
 /* =========================
-   タグ
+   TAG
 ========================= */
 
 .tags{
@@ -663,7 +573,7 @@ textarea{
 
 
 /* =========================
-   成績
+   STATS
 ========================= */
 
 .stats{
@@ -685,35 +595,6 @@ textarea{
 
 .stats b{
   font-size:29px;
-}
-
-.folder-stat{
-  padding:13px;
-  border:1px solid var(--border);
-  border-radius:14px;
-  margin-top:8px;
-}
-
-.folder-stat>div:first-child{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.folder-stat small{
-  color:var(--sub);
-}
-
-.folder-stat-numbers{
-  display:flex;
-  gap:15px;
-  margin-top:8px;
-  align-items:center;
-}
-
-.folder-stat-numbers strong{
-  margin-left:auto;
-  font-size:23px;
 }
 
 .chart-bars{
@@ -745,13 +626,87 @@ textarea{
 
 
 /* =========================
-   設定
+   FOLDER
 ========================= */
 
-.sub-text{
+.folder-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.folder-main{
+  flex:1;
+  border:0;
+  background:none;
+  text-align:left;
+  padding:4px;
+}
+
+.folder-name{
+  display:block;
+  font-size:17px;
+  font-weight:900;
+}
+
+.folder-count{
+  display:block;
+  margin-top:4px;
   color:var(--sub);
-  font-size:13px;
-  line-height:1.6;
+  font-size:12px;
+}
+
+.folder-rate{
+  font-size:18px;
+  font-weight:950;
+}
+
+.folder-delete{
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:10px;
+  background:#fee2e2;
+  color:var(--red);
+}
+
+
+/* =========================
+   SETTINGS
+========================= */
+
+.switch-row{
+  display:flex !important;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.switch-row span{
+  display:block;
+}
+
+.switch-row small{
+  display:block;
+  color:var(--sub);
+  margin-top:4px;
+  font-weight:500;
+}
+
+.switch-row input{
+  width:48px;
+  height:28px;
+}
+
+input[type="range"]{
+  padding:0;
+  accent-color:var(--blue);
+}
+
+.volume-value{
+  text-align:center;
+  color:var(--sub);
 }
 
 .file-btn{
@@ -790,7 +745,7 @@ textarea{
 
 
 /* =========================
-   ナビ
+   NAV
 ========================= */
 
 .nav{
@@ -830,7 +785,7 @@ body.live-mode .nav{
 
 
 /* =========================
-   トースト
+   TOAST
 ========================= */
 
 #toast{
@@ -838,9 +793,7 @@ body.live-mode .nav{
   z-index:100;
   bottom:80px;
   left:50%;
-  transform:
-    translateX(-50%)
-    translateY(10px);
+  transform:translateX(-50%) translateY(10px);
   background:#111827;
   color:#fff;
   padding:10px 15px;
@@ -849,17 +802,17 @@ body.live-mode .nav{
   font-weight:800;
   opacity:0;
   transition:.2s;
+  pointer-events:none;
 }
 
 #toast.show{
   opacity:1;
-  transform:
-    translateX(-50%);
+  transform:translateX(-50%);
 }
 
 
 /* =========================
-   その他
+   OTHER
 ========================= */
 
 .empty{
@@ -886,8 +839,90 @@ body.live-mode .nav{
 
 
 /* =========================
-   PC
+   横向き
+   名前と得点が重ならない
 ========================= */
+
+@media (orientation:landscape) and (max-height:600px){
+
+  body.live-mode{
+    overflow:hidden;
+  }
+
+  body.live-mode #app{
+    max-width:none;
+  }
+
+  .live{
+    min-height:100vh;
+    height:100vh;
+    padding:5px 12px 8px;
+    overflow:hidden;
+  }
+
+  .live-header{
+    height:42px;
+  }
+
+  .chips{
+    margin:2px 0;
+  }
+
+  .big-score{
+    height:calc(100vh - 170px);
+    min-height:220px;
+    padding:8px 5vw;
+    border-radius:18px;
+    align-items:center;
+  }
+
+  .player-score{
+    width:45%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:5px;
+  }
+
+  .player-score small{
+    font-size:12px;
+    flex-shrink:0;
+  }
+
+  .player-score b{
+    font-size:clamp(14px,3vw,24px);
+    margin-top:3px;
+    flex-shrink:0;
+  }
+
+  .player-score strong{
+    font-size:clamp(90px,28vh,190px);
+    line-height:.8;
+    margin-top:8px;
+  }
+
+  .tap-hint{
+    flex-shrink:0;
+  }
+
+  .dash{
+    font-size:35px;
+  }
+
+  .score-buttons,
+  .status-message,
+  .table-title,
+  .score-scroll,
+  .bottom-info,
+  .finish-btn{
+    display:none;
+  }
+
+}
+
+
+/* PC */
 
 @media(min-width:700px){
 
@@ -898,219 +933,6 @@ body.live-mode .nav{
   #app{
     background:var(--bg);
     box-shadow:0 0 30px #0001;
-  }
-
-}
-
-
-/* ==================================================
-   スマホ横向きモード
-   ★ 今回の重要部分
-================================================== */
-
-@media screen and (orientation:landscape)
-       and (max-height:600px){
-
-  body.live-mode{
-    overflow:hidden;
-    background:#111827;
-  }
-
-  body.live-mode #app{
-    max-width:none;
-    width:100%;
-  }
-
-  body.live-mode .live{
-    min-height:100svh;
-    height:100svh;
-    padding:
-      5px
-      8px
-      7px;
-    overflow:hidden;
-  }
-
-  body.live-mode .live-header{
-    height:38px;
-    flex-shrink:0;
-  }
-
-  body.live-mode .live-round{
-    width:38px;
-    height:38px;
-    border-radius:11px;
-  }
-
-  body.live-mode .chips{
-    height:27px;
-    margin:2px 0;
-    flex-shrink:0;
-  }
-
-  body.live-mode .chips span{
-    padding:4px 8px;
-    font-size:9px;
-  }
-
-
-  /* 大画面得点 */
-
-  body.live-mode .big-score{
-    position:relative;
-
-    height:
-      calc(
-        100svh
-        - 38px
-        - 31px
-        - 13px
-      );
-
-    min-height:190px;
-
-    grid-template-columns:
-      minmax(0,1fr)
-      50px
-      minmax(0,1fr);
-
-    padding:5px;
-
-    border-radius:18px;
-  }
-
-
-  body.live-mode .score-side{
-    height:100%;
-    min-height:0;
-
-    display:grid;
-
-    grid-template-rows:
-      auto
-      auto
-      1fr
-      auto;
-
-    align-items:center;
-    justify-items:center;
-
-    padding:8px 4px;
-
-    overflow:hidden;
-  }
-
-
-  /*
-    名前を得点の上に固定。
-    得点とは別の行にするので
-    「名前と得点がかぶる」問題を防止。
-  */
-
-  body.live-mode .score-side small{
-    font-size:11px;
-    line-height:1;
-  }
-
-  body.live-mode .score-side b{
-    font-size:
-      clamp(13px,2.5vw,20px);
-
-    line-height:1.1;
-
-    width:95%;
-    min-height:0;
-  }
-
-
-  body.live-mode .score-side strong{
-
-    align-self:center;
-
-    font-size:
-      clamp(
-        95px,
-        24vh,
-        180px
-      );
-
-    line-height:.8;
-
-    margin:0;
-
-    /*
-      得点が名前に食い込まないように
-      position:absolute を使わず
-      gridで独立配置
-    */
-
-  }
-
-
-  body.live-mode .tap-hint{
-    font-size:9px;
-    margin:0;
-    color:#9ca3af;
-  }
-
-
-  body.live-mode .dash{
-    font-size:30px;
-  }
-
-
-  /*
-    横向きでは下の＋1ボタン、
-    得点表、ゲーム情報、終了ボタンを隠す。
-
-    得点そのものを押せば＋1。
-  */
-
-  body.live-mode .score-buttons,
-  body.live-mode .table-title,
-  body.live-mode .score-scroll,
-  body.live-mode .bottom-info,
-  body.live-mode .finish-btn{
-    display:none;
-  }
-
-}
-
-
-/* ==================================================
-   とても横長・高さが低いスマホ
-================================================== */
-
-@media screen and (orientation:landscape)
-       and (max-height:430px){
-
-  body.live-mode .live-header{
-    height:34px;
-  }
-
-  body.live-mode .live-round{
-    width:34px;
-    height:34px;
-  }
-
-  body.live-mode .chips{
-    display:none;
-  }
-
-  body.live-mode .big-score{
-    height:
-      calc(
-        100svh - 40px
-      );
-  }
-
-  body.live-mode .score-side strong{
-    font-size:
-      clamp(
-        80px,
-        28vh,
-        145px
-      );
   }
 
 }
